@@ -1,0 +1,19 @@
+{
+  "name": "cloudflare-apple-dashboard",
+  "version": "1.0.0",
+  "description": "Cloudflare Serverless Static Dashboard - Designed by Apple",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static build ready. Serving static files directly.'",
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "cloudflare",
+    "pages",
+    "serverless",
+    "react",
+    "apple-design"
+  ],
+  "author": "Plamingo",
+  "license": "MIT"
+}
