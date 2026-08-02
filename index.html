@@ -1,40 +1,1148 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudflare Edge Fabric — Designed by Apple</title>
-    <meta name="description" content="Cloudflare 서버리스 엣지 네이티브 대시보드 - Apple 디자인 언어 스타일">
-    
-    <!-- Apple favicon & Web App settings -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F38020'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
-    <meta name="theme-color" content="#000000">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아파트 실거래가 조회 - Supabase 연동 대시보드</title>
+  <!-- Google Fonts & FontAwesome icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
 
-    <!-- Fonts: Inter & Apple System Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --bg-gradient: radial-gradient(at 0% 0%, rgba(62, 207, 142, 0.08) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 50%);
+      --header-bg: rgba(9, 13, 22, 0.85);
+      --panel-bg: rgba(30, 41, 59, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --card-bg: #131b2e;
+      --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --text: #f8fafc;
+      --text-gradient: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      --muted: #94a3b8;
+      --primary: #3ecf8e;
+      --primary-hover: #34b27b;
+      --primary-glow: rgba(62, 207, 142, 0.2);
+      --primary-btn-text: #090d16;
+      --accent: #38bdf8;
+      --error: #f43f5e;
+      --code-bg: #050811;
+      --code-text: #38bdf8;
+      --row-hover: rgba(255, 255, 255, 0.03);
+      --table-th-bg: rgba(15, 23, 42, 0.9);
+      --table-td-border: rgba(255, 255, 255, 0.04);
+      --table-td-text: #cbd5e1;
+      --stat-icon-bg: rgba(255, 255, 255, 0.05);
+      color-scheme: dark;
+    }
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --bg-gradient: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(2, 132, 199, 0.08) 0px, transparent 50%);
+      --header-bg: rgba(255, 255, 255, 0.88);
+      --panel-bg: rgba(255, 255, 255, 0.9);
+      --panel-border: rgba(203, 213, 225, 0.9);
+      --card-bg: #ffffff;
+      --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+      --text: #0f172a;
+      --text-gradient: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+      --muted: #64748b;
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-glow: rgba(5, 150, 105, 0.15);
+      --primary-btn-text: #ffffff;
+      --accent: #0284c7;
+      --error: #e11d48;
+      --code-bg: #f8fafc;
+      --code-text: #0284c7;
+      --row-hover: rgba(241, 245, 249, 0.9);
+      --table-th-bg: #f1f5f9;
+      --table-td-border: #e2e8f0;
+      --table-td-text: #334155;
+      --stat-icon-bg: #f1f5f9;
+      color-scheme: light;
+    }
 
-    <!-- React 18 CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    <!-- Babel Standalone for inline JSX execution -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      padding-bottom: 40px;
+      transition: none;
+    }
 
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    .header-bar {
+      border-bottom: 1px solid var(--panel-border);
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: none;
+    }
 
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    .header-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .brand h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: var(--text-gradient);
+      background-clip: text; /* 표준 속성 추가 */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--card-shadow);
+      user-select: none;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle-btn i {
+      font-size: 0.9rem;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover i {
+      transform: rotate(20deg);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(62, 207, 142, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      transition: none;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--card-shadow);
+      transition: none;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      background: var(--stat-icon-bg);
+      color: var(--primary);
+      transition: none;
+    }
+
+    .stat-info .label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-info .value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Controls Panel */
+    .controls-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      transition: none;
+    }
+
+    .filters-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .select-box {
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      min-width: 160px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .select-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 42px;
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-toggle {
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      color: var(--muted);
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-toggle.active, .btn-toggle:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
+
+    .btn-refresh {
+      background: var(--primary);
+      color: var(--primary-btn-text);
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-refresh:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Table Container */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--table-th-bg);
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--panel-border);
+      user-select: none;
+      cursor: pointer;
+    }
+
+    th:hover {
+      color: var(--text);
+    }
+
+    td {
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--table-td-border);
+      color: var(--table-td-text);
+    }
+
+    tr:hover td {
+      background-color: var(--row-hover);
+    }
+
+    .apt-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .price-tag {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    .area-tag {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .floor-tag {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    /* JSON Output View */
+    .json-container {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 20px;
+      font-family: "Fira Code", Consolas, monospace;
+      font-size: 0.85rem;
+      color: var(--code-text);
+      max-height: 520px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      gap: 16px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(62, 207, 142, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-card {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      color: var(--error);
+      margin-top: 16px;
+    }
+
+    .error-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-details {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+
+    /* Area Filter Panel */
+    .area-filter-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--card-shadow);
+      transition: none;
+    }
+
+    .area-filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .area-filter-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .area-filter-title i {
+      color: var(--accent);
+    }
+
+    .area-filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .area-btn {
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 9px 15px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    .area-btn:hover {
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.05);
+      transform: translateY(-1px);
+    }
+
+    .area-btn.active {
+      background: rgba(62, 207, 142, 0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+      box-shadow: 0 0 14px rgba(62, 207, 142, 0.2);
+    }
+
+    .area-btn .btn-sub {
+      font-size: 0.75rem;
+      opacity: 0.75;
+      font-weight: 400;
+    }
+
+    .area-btn .count-badge {
+      background: var(--stat-icon-bg);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .area-btn.active .count-badge {
+      background: var(--primary);
+      color: var(--primary-btn-text);
+      font-weight: 700;
+    }
+  </style>
 </head>
-<body class="dark-theme">
-    <div id="root"></div>
+<body>
 
-    <!-- Main React App Script -->
-    <script type="text/babel" src="app.js"></script>
+  <!-- Top Navigation Header -->
+  <header class="header-bar">
+    <div class="header-container">
+      <div class="brand">
+        <svg viewBox="0 0 106 106" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M58.7077 104.984C55.2346 108.976 48.6657 106.326 48.9619 101.037L52.548 36.9628H8.81768C2.55182 36.9628 -1.24647 29.8398 2.37887 24.7337L47.2923 1.01597C50.7654 -2.97561 57.3343 -0.325596 57.0381 4.96312L53.452 69.0372H97.1823C103.448 69.0372 107.246 76.1602 103.621 81.2663L58.7077 104.984Z" fill="#3ECF8E"/>
+        </svg>
+        <h1>아파트 실거래가 대시보드</h1>
+      </div>
+      <div class="header-controls">
+        <!-- 테마선택 -->
+        <!-- <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()" title="테마 변경 (라이트/다크)" aria-label="테마 전환">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+          <span id="theme-text">다크 모드</span>
+        </button> -->
+        <div class="status-badge" id="status-badge">
+          <span class="status-dot"></span>
+          <span id="status-text">국토부 DB 연결됨</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats Cards Summary -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-database"></i></div>
+        <div class="stat-info">
+          <div class="label">총 거래 건수</div>
+          <div class="value" id="stat-total">- 건</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #38bdf8;"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="stat-info">
+          <div class="label">최고 거래가</div>
+          <div class="value" id="stat-max" style="color: #38bdf8;">-</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #f59e0b;"><i class="fa-solid fa-calculator"></i></div>
+        <div class="stat-info">
+          <div class="label">평균 거래가</div>
+          <div class="value" id="stat-avg" style="color: #f59e0b;">-</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #a855f7;"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="stat-info">
+          <div class="label">최신 거래일</div>
+          <div class="value" id="stat-latest" style="color: #a855f7;">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Action Controls -->
+    <div class="controls-panel">
+      <div class="filters-group">
+        <!-- 지역 선택 드롭다운 -->
+        <select id="region-select" class="select-box" onchange="loadApartmentDeals()">
+          <option value="">🌐 전체 지역 (서울/경기)</option>
+          <optgroup label="서울특별시 (25개 자치구)">
+            <option value="11110">서울특별시 종로구</option>
+            <option value="11140">서울특별시 중구</option>
+            <option value="11170">서울특별시 용산구</option>
+            <option value="11200">서울특별시 성동구</option>
+            <option value="11215">서울특별시 광진구</option>
+            <option value="11230">서울특별시 동대문구</option>
+            <option value="11260">서울특별시 중랑구</option>
+            <option value="11290">서울특별시 성북구</option>
+            <option value="11305">서울특별시 강북구</option>
+            <option value="11320">서울특별시 도봉구</option>
+            <option value="11350">서울특별시 노원구</option>
+            <option value="11380">서울특별시 은평구</option>
+            <option value="11410">서울특별시 서대문구</option>
+            <option value="11440">서울특별시 마포구</option>
+            <option value="11470">서울특별시 양천구</option>
+            <option value="11500">서울특별시 강서구</option>
+            <option value="11530">서울특별시 구로구</option>
+            <option value="11545">서울특별시 금천구</option>
+            <option value="11560">서울특별시 영등포구</option>
+            <option value="11590">서울특별시 동작구</option>
+            <option value="11620">서울특별시 관악구</option>
+            <option value="11650">서울특별시 서초구</option>
+            <option value="11680">서울특별시 강남구</option>
+            <option value="11710">서울특별시 송파구</option>
+            <option value="11740">서울특별시 강동구</option>
+          </optgroup>
+          <optgroup label="경기도 (44개 시군구)">
+            <option value="41111">경기도 수원시 장안구</option>
+            <option value="41113">경기도 수원시 권선구</option>
+            <option value="41115">경기도 수원시 팔달구</option>
+            <option value="41117">경기도 수원시 영통구</option>
+            <option value="41131">경기도 성남시 수정구</option>
+            <option value="41133">경기도 성남시 중원구</option>
+            <option value="41135" selected>경기도 성남시 분당구</option>
+            <option value="41150">경기도 의정부시</option>
+            <option value="41171">경기도 안양시 만안구</option>
+            <option value="41173">경기도 안양시 동안구</option>
+            <option value="41192">경기도 부천시 원미구</option>
+            <option value="41194">경기도 부천시 소사구</option>
+            <option value="41196">경기도 부천시 오정구</option>
+            <option value="41210">경기도 광명시</option>
+            <option value="41220">경기도 평택시</option>
+            <option value="41250">경기도 동두천시</option>
+            <option value="41271">경기도 안산시 상록구</option>
+            <option value="41273">경기도 안산시 단원구</option>
+            <option value="41281">경기도 고양시 덕양구</option>
+            <option value="41285">경기도 고양시 일산동구</option>
+            <option value="41287">경기도 고양시 일산서구</option>
+            <option value="41290">경기도 과천시</option>
+            <option value="41310">경기도 구리시</option>
+            <option value="41360">경기도 남양주시</option>
+            <option value="41370">경기도 오산시</option>
+            <option value="41390">경기도 시흥시</option>
+            <option value="41410">경기도 군포시</option>
+            <option value="41430">경기도 의왕시</option>
+            <option value="41450">경기도 하남시</option>
+            <option value="41461">경기도 용인시 처인구</option>
+            <option value="41463">경기도 용인시 기흥구</option>
+            <option value="41465">경기도 용인시 수지구</option>
+            <option value="41480">경기도 파주시</option>
+            <option value="41500">경기도 이천시</option>
+            <option value="41550">경기도 안성시</option>
+            <option value="41570">경기도 김포시</option>
+            <option value="41590">경기도 화성시</option>
+            <option value="41610">경기도 광주시</option>
+            <option value="41630">경기도 양주시</option>
+            <option value="41650">경기도 포천시</option>
+            <option value="41670">경기도 여주시</option>
+            <option value="41800">경기도 연천군</option>
+            <option value="41820">경기도 가평군</option>
+            <option value="41830">경기도 양평군</option>
+          </optgroup>
+        </select>
+
+        <!-- 연도 선택 드롭다운 -->
+        <select id="year-select" class="select-box" onchange="loadApartmentDeals()">
+          <option value="2026" selected>📅 2026년</option>
+          <option value="2025">📅 2025년</option>
+          <option value="2024">📅 2024년</option>
+          <option value="ALL">📅 전체 연도</option>
+        </select>
+
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="아파트명 또는 동 검색..." oninput="handleSearch()">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-toggle active" id="view-table-btn" onclick="switchView('table')">
+          <i class="fa-solid fa-table-cells"></i> 표 보기
+        </button>
+        <button class="btn-toggle" id="view-json-btn" onclick="switchView('json')">
+          <i class="fa-solid fa-code"></i> JSON 원본
+        </button>
+        <button class="btn-refresh" onclick="loadApartmentDeals()">
+          <i class="fa-solid fa-rotate-right"></i> 새로고침
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Display Container -->
+    <div id="error-container" style="display: none;"></div>
+
+    <!-- Table View -->
+    <div class="table-container" id="table-view">
+      <div id="loading-state" class="loading-spinner">
+        <div class="spinner"></div>
+        <span>Supabase (apartment_deals) 데이터를 불러오는 중...</span>
+      </div>
+
+      <table id="deals-table" style="display: none;">
+        <thead>
+          <tr>
+            <th onclick="sortTable('id')">ID <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('aptNm')">아파트명 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('umdNm')">지역 (동) <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('dealAmountVal')">거래금액 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('dealDateStr')">계약일자 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('excluUseAr')">전용면적 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('floor')">층수 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('buildYear')">건축년도 <i class="fa-solid fa-sort"></i></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- JSON View -->
+    <div class="json-container" id="json-view">
+      <pre id="raw-json-output">불러오는 중...</pre>
+    </div>
+  </main>
+
+  <script>
+    // -------------------------------------------------------------
+    // Supabase 연동 설정 (제공된 URL 및 Key)
+    // -------------------------------------------------------------
+    const SUPABASE_URL = "https://fxjtykeuznhnyctyqalc.supabase.co/";
+    const SUPABASE_ANON_KEY = "sb_publishable_cPFw8hOTys96SJkuG_k0ow_DOf4vxAd";
+    const TABLE_NAME = "apartment_deals";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let rawData = [];
+    let processedData = [];
+    let currentSortField = 'id';
+    let isAsc = true;
+
+    // -------------------------------------------------------------
+    // 다크 / 라이트 테마 전환 제어
+    // -------------------------------------------------------------
+    function updateThemeUI(theme) {
+      const themeIcon = document.getElementById('theme-icon');
+      const themeText = document.getElementById('theme-text');
+      if (!themeIcon || !themeText) return;
+
+      if (theme === 'dark') {
+        themeIcon.className = 'fa-solid fa-moon';
+        themeText.textContent = '다크 모드';
+      } else {
+        themeIcon.className = 'fa-solid fa-sun';
+        themeText.textContent = '라이트 모드';
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeUI(newTheme);
+    }
+
+    // OS 테마 변경 실시간 감지 (사용자가 직접 선택하지 않았을 때 적용)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        const newTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        updateThemeUI(newTheme);
+      }
+    });
+
+    // 페이지 로드 시 자동 데이터 조회 및 테마 UI 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      updateThemeUI(currentTheme);
+      loadApartmentDeals();
+    });
+
+    // -------------------------------------------------------------
+    // 데이터 불러오기 (선택된 지역코드 & 연도 조건 적용)
+    // -------------------------------------------------------------
+    async function loadApartmentDeals() {
+      const loadingState = document.getElementById('loading-state');
+      const dealsTable = document.getElementById('deals-table');
+      const errorContainer = document.getElementById('error-container');
+      const rawJsonOutput = document.getElementById('raw-json-output');
+
+      const selectedRegion = document.getElementById('region-select').value;
+      const selectedYear = document.getElementById('year-select').value;
+
+      loadingState.style.display = 'flex';
+      dealsTable.style.display = 'none';
+      errorContainer.style.display = 'none';
+
+      try {
+        let allData = [];
+        let from = 0;
+        const step = 1000;
+        let hasMore = true;
+
+        // 페이징 루프를 통해 선택된 조건의 전체 데이터를 불러옴
+        while (hasMore) {
+          let query = supabaseClient
+            .from(TABLE_NAME)
+            .select('*');
+
+          // 1. 선택된 지역코드(sggCd) 조건 필터링
+          if (selectedRegion) {
+            query = query.eq('sggCd', selectedRegion);
+          }
+
+          // 2. 선택된 연도(dealYear) 조건 필터링
+          if (selectedYear && selectedYear !== 'ALL') {
+            query = query.eq('dealYear', parseInt(selectedYear, 10));
+          }
+
+          const { data, error } = await query
+            .order('id', { ascending: true })
+            .range(from, from + step - 1);
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allData = allData.concat(data);
+            from += step;
+            if (data.length < step) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+
+        rawData = allData;
+        rawJsonOutput.textContent = JSON.stringify(rawData, null, 2);
+
+        // 데이터 전처리 (금액 숫자 변환 및 날짜 가공)
+        processedData = rawData.map(item => {
+          // dealAmount ("185,000" -> 185000)
+          let amountNum = 0;
+          if (item.dealAmount) {
+            amountNum = parseInt(String(item.dealAmount).replace(/,/g, '').trim(), 10) || 0;
+          }
+
+          // 날짜 가공 (dealYear, dealMonth, dealDay)
+          const year = item.dealYear || '';
+          const month = String(item.dealMonth || '').padStart(2, '0');
+          const day = String(item.dealDay || '').padStart(2, '0');
+          const dealDateStr = year ? `${year}.${month}.${day}` : '';
+
+          return {
+            ...item,
+            dealAmountVal: amountNum,
+            dealDateStr: dealDateStr
+          };
+        });
+
+        // 통계 및 테이블 렌더링
+        updateStats(processedData);
+        renderTable(processedData);
+
+        loadingState.style.display = 'none';
+        dealsTable.style.display = 'table';
+      } catch (err) {
+        loadingState.style.display = 'none';
+        showError(err);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 통계 카드 업데이트
+    // -------------------------------------------------------------
+    function updateStats(dataList) {
+      document.getElementById('stat-total').textContent = `${dataList.length.toLocaleString()} 건`;
+
+      if (dataList.length === 0) {
+        document.getElementById('stat-max').textContent = '-';
+        document.getElementById('stat-avg').textContent = '-';
+        document.getElementById('stat-latest').textContent = '-';
+        return;
+      }
+
+      // 최고 거래가 및 평균 거래가 계산
+      const validAmounts = dataList.map(d => d.dealAmountVal).filter(a => a > 0);
+      if (validAmounts.length > 0) {
+        const maxVal = Math.max(...validAmounts);
+        const sumVal = validAmounts.reduce((a, b) => a + b, 0);
+        const avgVal = Math.round(sumVal / validAmounts.length);
+
+        document.getElementById('stat-max').textContent = formatKoreanPrice(maxVal);
+        document.getElementById('stat-avg').textContent = formatKoreanPrice(avgVal);
+      }
+
+      // 최신 거래일
+      const validDates = dataList.map(d => d.dealDateStr).filter(d => d.length > 0).sort();
+      if (validDates.length > 0) {
+        document.getElementById('stat-latest').textContent = validDates[validDates.length - 1];
+      }
+    }
+
+    // 금액 포맷 (예: 185000 -> 18억 5,000만)
+    function formatKoreanPrice(amount) {
+      if (!amount) return '-';
+      const uk = Math.floor(amount / 10000);
+      const man = amount % 10000;
+      
+      let res = '';
+      if (uk > 0) res += `${uk}억 `;
+      if (man > 0) res += `${man.toLocaleString()}만`;
+      return res.trim() + '원';
+    }
+
+    // -------------------------------------------------------------
+    // 테이블 렌더링
+    // -------------------------------------------------------------
+    function renderTable(dataList) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--muted);">선택한 조건의 실거래가 데이터가 없습니다.</td></tr>`;
+        return;
+      }
+
+      dataList.forEach(item => {
+        const tr = document.createElement('tr');
+
+        const aptName = item.aptNm || '미지정';
+        const umd = item.umdNm ? item.umdNm.trim() : '';
+        const jibun = item.jibun ? item.jibun.trim() : '';
+        const location = `${umd} ${jibun}`.trim() || '-';
+        const formattedPrice = formatKoreanPrice(item.dealAmountVal) || item.dealAmount || '-';
+        const areaPyeong = item.excluUseAr ? `${item.excluUseAr}㎡ (${Math.round(item.excluUseAr / 3.3058)}평)` : '-';
+        const floorStr = item.floor ? `${item.floor}층` : '-';
+        const buildYearStr = item.buildYear ? `${item.buildYear}년` : '-';
+
+        tr.innerHTML = `
+          <td>${item.id}</td>
+          <td class="apt-name">${aptName}</td>
+          <td>${location}</td>
+          <td class="price-tag">${formattedPrice}</td>
+          <td>${item.dealDateStr || '-'}</td>
+          <td><span class="area-tag">${areaPyeong}</span></td>
+          <td><span class="floor-tag">${floorStr}</span></td>
+          <td>${buildYearStr}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 검색어 필터링 및 정렬 통합 처리
+    // -------------------------------------------------------------
+    function getFilteredAndSortedData() {
+      const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+
+      // 1. 검색어 필터링
+      let filtered = processedData.filter(item => {
+        if (!keyword) return true;
+        const name = (item.aptNm || '').toLowerCase();
+        const umd = (item.umdNm || '').toLowerCase();
+        const jibun = (item.jibun || '').toLowerCase();
+        return name.includes(keyword) || umd.includes(keyword) || jibun.includes(keyword);
+      });
+
+      // 2. 정렬 처리
+      filtered.sort((a, b) => {
+        let valA = a[currentSortField] ?? 0;
+        let valB = b[currentSortField] ?? 0;
+
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    // -------------------------------------------------------------
+    // 검색 핸들러
+    // -------------------------------------------------------------
+    function handleSearch() {
+      const dataList = getFilteredAndSortedData();
+      updateStats(dataList);
+      renderTable(dataList);
+    }
+
+    // -------------------------------------------------------------
+    // 컬럼 정렬 핸들러
+    // -------------------------------------------------------------
+    function sortTable(field) {
+      if (currentSortField === field) {
+        isAsc = !isAsc;
+      } else {
+        currentSortField = field;
+        isAsc = true;
+      }
+
+      const dataList = getFilteredAndSortedData();
+      renderTable(dataList);
+    }
+
+    // -------------------------------------------------------------
+    // 뷰 전환 (표 뷰 / JSON 원본 뷰)
+    // -------------------------------------------------------------
+    function switchView(viewType) {
+      const tableView = document.getElementById('table-view');
+      const jsonView = document.getElementById('json-view');
+      const tableBtn = document.getElementById('view-table-btn');
+      const jsonBtn = document.getElementById('view-json-btn');
+
+      if (viewType === 'table') {
+        tableView.style.display = 'block';
+        jsonView.style.display = 'none';
+        tableBtn.classList.add('active');
+        jsonBtn.classList.remove('active');
+      } else {
+        tableView.style.display = 'none';
+        jsonView.style.display = 'block';
+        tableBtn.classList.remove('active');
+        jsonBtn.classList.add('active');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 에러 표시
+    // -------------------------------------------------------------
+    function showError(err) {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.style.display = 'block';
+
+      const errorObj = {
+        message: err.message || 'Supabase 연결 중 오류가 발생했습니다.',
+        details: err.details || null,
+        hint: err.hint || null,
+        code: err.code || null,
+        status: err.status || null,
+        raw: err
+      };
+
+      errorContainer.innerHTML = `
+        <div class="error-card">
+          <div class="error-title"><i class="fa-solid fa-triangle-exclamation"></i> Supabase 연동 오류 발생</div>
+          <p>${errorObj.message}</p>
+          <div class="error-details">${JSON.stringify(errorObj, null, 2)}</div>
+        </div>
+      `;
+
+      document.getElementById('status-badge').style.borderColor = '#f43f5e';
+      document.getElementById('status-text').textContent = '연결 오류';
+      document.getElementById('status-text').style.color = '#f43f5e';
+    }
+  </script>
 </body>
 </html>

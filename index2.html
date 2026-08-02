@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내집파인더 | 부스패치 BOOSPATCH - 맞춤형 부동산 매수 추천 서비스</title>
+  <meta name="description" content="나의 자본금, 소득, 대출 조건에 맞는 매수 가능한 아파트를 찾아드립니다. 개인 맞춤형 부동산 투자 기회를 발견하세요.">
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="내집파인더 | 부스패치">
+  <meta property="og:description" content="자본금과 소득 기반 맞춤형 부동산 추천 및 대출/세금 시뮬레이터">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="nav-left">
+      <a href="#" class="brand-logo">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        </div>
+        부스패치
+      </a>
+      <ul class="nav-menu">
+        <li class="nav-item active"><a href="#">🔍 내집파인더</a></li>
+        <li class="nav-item"><a href="#">📊 현장지수</a></li>
+        <li class="nav-item"><a href="#">🔥 급매 투데이</a></li>
+        <li class="nav-item"><a href="#">⚖️ 관심단지 비교</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-right">
+      <div class="preset-pill">
+        <span class="preset-dot"></span>
+        프리셋 연결됨: #0c7eae72
+      </div>
+      <button class="btn-share" id="sharePresetBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        조건 공유
+      </button>
+    </div>
+  </header>
+
+  <!-- Preset Banner Info Bar -->
+  <div class="top-sub-bar">
+    <div class="preset-title-group">
+      <h2>
+        내집마련 추천 파인드 
+        <span class="preset-tag">실거주 맞춤분석</span>
+      </h2>
+    </div>
+    <div class="quick-preset-btns">
+      <button class="chip-btn active" onclick="loadPreset('starter')">💡 30대 실거주 첫집 (3.5억)</button>
+      <button class="chip-btn" onclick="loadPreset('upgrade')">🏠 상급지 갈아타기 (6억)</button>
+      <button class="chip-btn" onclick="loadPreset('gap')">📈 갭투자 추천 (2.5억)</button>
+    </div>
+  </div>
+
+  <!-- App Main Container -->
+  <div class="app-container">
+
+    <!-- Left Filter Sidebar -->
+    <aside class="filter-sidebar">
+      <div class="sidebar-header">
+        <h3>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          매수 조건 설정
+        </h3>
+        <button class="btn-reset" id="resetBtn">🔄 초기화</button>
+      </div>
+
+      <div class="sidebar-body">
+
+        <!-- 1. 자본금 (Cash) -->
+        <div class="filter-section">
+          <div class="filter-label">
+            <span>보유 자본금</span>
+            <span class="filter-val-highlight" id="capitalValText">3억 5,000만원</span>
+          </div>
+          <div class="range-slider-wrapper">
+            <input type="range" id="capitalRange" min="10000" max="150000" step="1000" value="35000">
+            <div class="quick-add-group">
+              <button class="quick-add-btn" onclick="addCapital(1000)">+1천만</button>
+              <button class="quick-add-btn" onclick="addCapital(5000)">+5천만</button>
+              <button class="quick-add-btn" onclick="addCapital(10000)">+1억원</button>
+              <button class="quick-add-btn" onclick="addCapital(20000)">+2억원</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 연소득 (Income) -->
+        <div class="filter-section">
+          <div class="filter-label">
+            <span>부부합산 연소득</span>
+            <span class="filter-val-highlight" id="incomeValText">6,500만원</span>
+          </div>
+          <input type="range" id="incomeRange" min="3000" max="20000" step="500" value="6500">
+        </div>
+
+        <!-- 3. 보유 주택 수 & 목적 -->
+        <div class="filter-section">
+          <div class="filter-label">보유 주택 수</div>
+          <div class="segmented-control" id="houseCountCtrl">
+            <button class="active" data-val="0">무주택</button>
+            <button data-val="1">1주택</button>
+            <button data-val="2">2주택 이상</button>
+          </div>
+        </div>
+
+        <!-- 4. 대출 상품 선택 -->
+        <div class="filter-section">
+          <div class="filter-label">선호 대출 상품</div>
+          <select class="select-dropdown" id="loanTypeSelect">
+            <option value="first">생애최초 주담대 (LTV 80%)</option>
+            <option value="normal" selected>일반 주택담보대출 (LTV 70%)</option>
+            <option value="newborn">신생아 특례대출 (저금리 2.2%)</option>
+            <option value="didimdol">디딤돌 / 보금자리론</option>
+          </select>
+        </div>
+
+        <!-- 5. 지역 선택 -->
+        <div class="filter-section">
+          <div class="filter-label">희망 매수 지역</div>
+          <div class="location-pills" id="locationPills">
+            <span class="loc-pill selected" data-loc="mapo">마포/용산/성동</span>
+            <span class="loc-pill selected" data-loc="gangdong">강동/송파</span>
+            <span class="loc-pill selected" data-loc="seodaemun">서대문/은평</span>
+            <span class="loc-pill" data-loc="yeongdeungpo">영등포/동작</span>
+            <span class="loc-pill" data-loc="bundang">성남 분당구</span>
+            <span class="loc-pill" data-loc="gwangmyeong">경기 광명</span>
+          </div>
+        </div>
+
+        <!-- 6. 평형대 선택 -->
+        <div class="filter-section">
+          <div class="filter-label">희망 평형 (전용면적)</div>
+          <div class="segmented-control" id="sizeCtrl">
+            <button class="active" data-size="all">전체</button>
+            <button data-size="59">20평대(59㎡)</button>
+            <button data-size="84">30평대(84㎡)</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-submit-search" id="searchTriggerBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          맞춤 아파트 단지 탐색
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Right Area -->
+    <main class="content-main">
+
+      <!-- Financial Summary Dashboard -->
+      <section class="dashboard-calc-card">
+        <div class="calc-card-glow"></div>
+        <div class="dashboard-calc-grid">
+
+          <div class="calc-item">
+            <span class="calc-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="20" rx="2"></rect>
+                <line x1="6" y1="8" x2="6" y2="8"></line>
+              </svg>
+              최대 매수 가능 금액
+            </span>
+            <span class="calc-primary-val" id="maxBudgetDisplay">8억 2,500만원</span>
+            <span class="calc-sub-val" id="budgetFormulaText">자본금 3.5억 + 대출 4.75억</span>
+          </div>
+
+          <div class="calc-item">
+            <span class="calc-label">대출 한도 (DSR 40%)</span>
+            <span class="calc-primary-val" style="color: #6ee7b7;" id="maxLoanDisplay">4억 7,500만원</span>
+            <span class="calc-sub-val" id="monthlyPayText">월 원리금 221만원 (35년 만기)</span>
+          </div>
+
+          <div class="calc-item">
+            <span class="calc-label">취득세 및 부대비용</span>
+            <span class="calc-primary-val" style="color: #fcd34d;" id="taxEstimateDisplay">약 2,350만원</span>
+            <span class="calc-sub-val">취득세 1.5% + 법무/복비</span>
+          </div>
+
+          <div class="calc-item">
+            <span class="calc-label">매수 매칭 단지</span>
+            <span class="calc-primary-val" style="color: #ffffff;" id="matchCountDisplay">9개 단지</span>
+            <span class="calc-sub-val">필터 조건 100% 충족</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Content Header Controls -->
+      <div class="content-controls-bar">
+        <div class="results-count-text">
+          매수 추천 리스트 (<span id="resultsCount">9</span>개)
+        </div>
+
+        <div class="sort-group">
+          <ul class="sort-options">
+            <li><button class="sort-btn active" data-sort="score">부스패치 추천순</button></li>
+            <li><button class="sort-btn" data-sort="price">가격 낮은순</button></li>
+            <li><button class="sort-btn" data-sort="gap">갭 적은순</button></li>
+          </ul>
+
+          <div class="view-toggle">
+            <button class="view-btn active" title="카드 뷰">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apartments Grid -->
+      <div class="apartment-cards-grid" id="aptGrid">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="modalAptName">마포래미안푸르지오 2단지</h3>
+          <p id="modalAptLoc">서울시 마포구 아현동 | 3,885세대 | 2014년 준공</p>
+        </div>
+        <button class="btn-close-modal" id="modalCloseBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Section 1: Financial breakdown -->
+        <div>
+          <div class="modal-section-title">💰 자금 조달 & 대출 시뮬레이션</div>
+          <table class="sim-table">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>금액 / 산출 내역</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>최근 실거래가 (매수 필요금)</td>
+                <td class="val-bold" id="modalPriceVal">7억 8,000만원</td>
+                <td>84㎡ (34평형) 기준</td>
+              </tr>
+              <tr>
+                <td>필요 보유 자본금</td>
+                <td id="modalUserCapitalVal">3억 5,000만원</td>
+                <td>내 입력 자본금</td>
+              </tr>
+              <tr>
+                <td>필요 대출 금액</td>
+                <td class="val-bold" id="modalRequiredLoanVal">4억 3,000만원</td>
+                <td>LTV 55.1% 적용 (한도 내)</td>
+              </tr>
+              <tr>
+                <td>예상 월 원리금 (35년, 3.8%)</td>
+                <td id="modalMonthlyPaymentVal">월 198만원</td>
+                <td>DSR 35.8% (적정)</td>
+              </tr>
+              <tr>
+                <td>예상 취득세 + 부대비용</td>
+                <td id="modalTaxVal">약 1,860만원</td>
+                <td>취득세율 1.5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Section 2: Interactive SVG Price Chart -->
+        <div>
+          <div class="modal-section-title">📈 최근 3년간 실거래가 동향 (만원)</div>
+          <div class="chart-box">
+            <svg viewBox="0 0 600 200" style="width:100%; height: auto;">
+              <!-- Grid lines -->
+              <line x1="40" y1="30" x2="560" y2="30" stroke="#e2e8f0" stroke-dasharray="4"/>
+              <line x1="40" y1="80" x2="560" y2="80" stroke="#e2e8f0" stroke-dasharray="4"/>
+              <line x1="40" y1="130" x2="560" y2="130" stroke="#e2e8f0" stroke-dasharray="4"/>
+              <line x1="40" y1="170" x2="560" y2="170" stroke="#94a3b8" stroke-width="1"/>
+
+              <!-- Y-axis labels -->
+              <text x="35" y="35" font-size="11" fill="#64748b" text-anchor="end">8.5억</text>
+              <text x="35" y="85" font-size="11" fill="#64748b" text-anchor="end">8.0억</text>
+              <text x="35" y="135" font-size="11" fill="#64748b" text-anchor="end">7.5억</text>
+
+              <!-- X-axis labels -->
+              <text x="80" y="190" font-size="11" fill="#64748b" text-anchor="middle">2023.01</text>
+              <text x="240" y="190" font-size="11" fill="#64748b" text-anchor="middle">2024.01</text>
+              <text x="400" y="190" font-size="11" fill="#64748b" text-anchor="middle">2025.01</text>
+              <text x="520" y="190" font-size="11" fill="#64748b" text-anchor="middle">최근</text>
+
+              <!-- Smooth Area Gradient -->
+              <defs>
+                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#2563eb" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+
+              <path d="M 80 140 L 160 120 L 240 100 L 320 110 L 400 70 L 520 60 L 520 170 L 80 170 Z" fill="url(#chartGrad)" />
+              <path d="M 80 140 L 160 120 L 240 100 L 320 110 L 400 70 L 520 60" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+
+              <!-- Data Points -->
+              <circle cx="80" cy="140" r="5" fill="#2563eb"/>
+              <circle cx="240" cy="100" r="5" fill="#2563eb"/>
+              <circle cx="400" cy="70" r="5" fill="#2563eb"/>
+              <circle cx="520" cy="60" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Section 3: AI summary -->
+        <div>
+          <div class="modal-section-title">🤖 부스패치 AI 매수 총평</div>
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; color: #1e3a8a; font-size: 0.9rem; line-height: 1.6;">
+            <strong>✓ 실거주 안정성 최상:</strong> 대단지 프리미엄과 아현역 초역세권 입지로 방어력이 뛰어납니다.<br>
+            <strong>✓ 재무 안전지대:</strong> 현재 자본금 3.5억원으로 매수 시, DSR 한도(40%) 이내인 35.8% 수준으로 안정적인 원리금 상환이 가능합니다.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMsg">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span id="toastText">설정이 업데이트 되었습니다.</span>
+  </div>
+
+  <script>
+    // Supabase 연동 설정 (index.html 설정 참조)
+    const SUPABASE_URL = "https://fxjtykeuznhnyctyqalc.supabase.co/";
+    const SUPABASE_ANON_KEY = "sb_publishable_cPFw8hOTys96SJkuG_k0ow_DOf4vxAd";
+    const TABLE_NAME = "apartment_deals";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 시군구 코드 -> 지역 명칭 매핑
+    const sggNameMap = {
+      "11110": "서울시 종로구", "11140": "서울시 중구", "11170": "서울시 용산구",
+      "11200": "서울시 성동구", "11215": "서울시 광진구", "11230": "서울시 동대문구",
+      "11260": "서울시 중랑구", "11290": "서울시 성북구", "11305": "서울시 강북구",
+      "11320": "서울시 도봉구", "11350": "서울시 노원구", "11380": "서울시 은평구",
+      "11410": "서울시 서대문구", "11440": "서울시 마포구", "11470": "서울시 양천구",
+      "11500": "서울시 강서구", "11530": "서울시 구로구", "11545": "서울시 금천구",
+      "11560": "서울시 영등포구", "11590": "서울시 동작구", "11620": "서울시 관악구",
+      "11650": "서울시 서초구", "11680": "서울시 강남구", "11710": "서울시 송파구",
+      "11740": "서울시 강동구", "41111": "수원시 장안구", "41113": "수원시 권선구",
+      "41115": "수원시 팔달구", "41117": "수원시 영통구", "41131": "성남시 수정구",
+      "41133": "성남시 중원구", "41135": "성남시 분당구", "41150": "의정부시",
+      "41171": "안양시 만안구", "41173": "안양시 동안구", "41192": "부천시 원미구",
+      "41194": "부천시 소사구", "41196": "부천시 오정구", "41210": "광명시",
+      "41220": "평택시", "41250": "동두천시", "41271": "안산시 상록구",
+      "41273": "안산시 단원구", "41281": "고양시 덕양구", "41285": "고양시 일산동구",
+      "41287": "고양시 일산서구", "41290": "과천시", "41310": "구리시",
+      "41360": "남양주시", "41370": "오산시", "41390": "시흥시",
+      "41410": "군포시", "41430": "의왕시", "41450": "하남시",
+      "41461": "용인시 처인구", "41463": "용인시 기흥구", "41465": "용인시 수지구",
+      "41480": "파주시", "41500": "이천시", "41550": "안성시",
+      "41570": "김포시", "41590": "화성시", "41610": "광주시",
+      "41630": "양주시", "41650": "포천시", "41670": "여주시"
+    };
+
+    // 필터용 권역 분류 (locCode)
+    const sggToLocMap = {
+      "11440": "mapo", "11170": "mapo", "11200": "mapo",
+      "11740": "gangdong", "11710": "gangdong",
+      "11410": "seodaemun", "11380": "seodaemun",
+      "11560": "yeongdeungpo", "11590": "yeongdeungpo",
+      "41135": "bundang",
+      "41210": "gwangmyeong"
+    };
+
+    // 기본 시뮬레이션용 데이터셋 (Supabase 로드 완료 전/예비용)
+    let apartmentDB = [
+      { id: 1, name: "마포래미안푸르지오 2단지", location: "서울시 마포구 아현동", locCode: "mapo", price: 78000, jeonse: 48000, gap: 30000, size: 84, score: 94, isHot: true, units: 3885, year: 2014, tags: ["#역세권", "#초품아", "#대단지", "#인기상급지"] },
+      { id: 2, name: "고덕그라시움", location: "서울시 강동구 고덕동", locCode: "gangdong", price: 81000, jeonse: 50000, gap: 31000, size: 59, score: 91, isHot: false, units: 4932, year: 2019, tags: ["#신축대단지", "#초품아", "#9호선연장"] },
+      { id: 3, name: "DMC파크뷰자이 1단지", location: "서울시 서대문구 남가좌동", locCode: "seodaemun", price: 75000, jeonse: 46000, gap: 29000, size: 84, score: 89, isHot: true, units: 4300, year: 2015, tags: ["#급매물", "#가성비30평대", "#초품아"] },
+      { id: 4, name: "신길센트럴자이", location: "서울시 영등포구 신길동", locCode: "yeongdeungpo", price: 79000, jeonse: 49000, gap: 30000, size: 59, score: 93, isHot: false, units: 1008, year: 2020, tags: ["#신길뉴타운", "#신풍역세권", "#신축"] },
+      { id: 5, name: "분당 파크뷰", location: "경기도 성남시 분당구 정자동", locCode: "bundang", price: 82000, jeonse: 52000, gap: 30000, size: 84, score: 95, isHot: true, units: 1829, year: 2004, tags: ["#분당상급지", "#학군지", "#정자역세권"] },
+      { id: 6, name: "철산자이 더 헤리티지", location: "경기도 광명시 철산동", locCode: "gwangmyeong", price: 69000, jeonse: 42000, gap: 27000, size: 59, score: 88, isHot: false, units: 3804, year: 2025, tags: ["#7호선역세권", "#신축입주", "#대단지"] },
+      { id: 7, name: "e편한세상 신촌", location: "서울시 서대문구 북아현동", locCode: "seodaemun", price: 83000, jeonse: 51000, gap: 32000, size: 59, score: 92, isHot: false, units: 1910, year: 2017, tags: ["#2호선역세권", "#광화문직주근접"] },
+      { id: 8, name: "래미안위브", location: "서울시 동대문구 답십리동", locCode: "mapo", price: 71000, jeonse: 45000, gap: 26000, size: 84, score: 87, isHot: false, units: 2652, year: 2014, tags: ["#가성비30평대", "#대단지", "#평지"] },
+      { id: 9, name: "강동 롯데캐슬 베네루체", location: "서울시 강동구 상일동", locCode: "gangdong", price: 77000, jeonse: 47000, gap: 30000, size: 59, score: 90, isHot: true, units: 1859, year: 2019, tags: ["#숲세권", "#신축대단지", "#조용함"] }
+    ];
+
+    // Supabase DB 데이터 동적 로드
+    async function loadSupabaseApartmentData() {
+      try {
+        const { data, error } = await supabaseClient
+          .from(TABLE_NAME)
+          .select('*')
+          .order('id', { ascending: true })
+          .limit(1000);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          apartmentDB = data.map(item => {
+            let price = 0;
+            if (item.dealAmount) {
+              price = parseInt(String(item.dealAmount).replace(/,/g, '').trim(), 10) || 0;
+            }
+
+            const size = item.excluUseAr ? Math.round(item.excluUseAr) : 84;
+            const sggName = sggNameMap[item.sggCd] || '서울/경기';
+            const umd = item.umdNm ? item.umdNm.trim() : '';
+            const jibun = item.jibun ? item.jibun.trim() : '';
+            const location = `${sggName} ${umd} ${jibun}`.trim();
+
+            let locCode = sggToLocMap[item.sggCd];
+            if (!locCode) {
+              if (sggName.includes('마포') || sggName.includes('용산') || sggName.includes('성동')) locCode = 'mapo';
+              else if (sggName.includes('강동') || sggName.includes('송파')) locCode = 'gangdong';
+              else if (sggName.includes('서대문') || sggName.includes('은평')) locCode = 'seodaemun';
+              else if (sggName.includes('영등포') || sggName.includes('동작')) locCode = 'yeongdeungpo';
+              else if (sggName.includes('분당')) locCode = 'bundang';
+              else if (sggName.includes('광명')) locCode = 'gwangmyeong';
+              else locCode = 'other';
+            }
+
+            const jeonse = Math.round(price * 0.62);
+            const gap = Math.max(0, price - jeonse);
+
+            const buildYear = item.buildYear || 2015;
+            const age = 2026 - buildYear;
+            let score = Math.max(70, Math.min(98, 96 - Math.floor(age * 0.7)));
+
+            const tags = [];
+            if (buildYear >= 2020) tags.push('#신축');
+            else if (buildYear >= 2010) tags.push('#준신축');
+            else tags.push('#재건축기대');
+
+            if (size >= 80) tags.push('#30평대');
+            else if (size >= 50) tags.push('#20평대');
+            else tags.push('#소형평형');
+
+            if (item.floor && item.floor >= 10) tags.push('#고층');
+            else if (item.floor) tags.push(`${item.floor}층`);
+            tags.push('#국토부실거래');
+
+            return {
+              id: item.id,
+              name: item.aptNm || '아파트',
+              location: location,
+              locCode: locCode,
+              price: price,
+              jeonse: jeonse,
+              gap: gap,
+              size: size,
+              score: score,
+              isHot: score >= 90,
+              units: 1200 + (item.id % 2500),
+              year: buildYear,
+              tags: tags,
+              rawItem: item
+            };
+          });
+
+          // 상단 바 연결 상태 업데이트
+          const presetPill = document.querySelector('.preset-pill');
+          if (presetPill) {
+            presetPill.innerHTML = `<span class="preset-dot"></span> Supabase 실거래가 DB (${apartmentDB.length}건) 연동됨`;
+          }
+        }
+      } catch (err) {
+        console.warn("Supabase 데이터 로드 중 오류, 기본 데이터셋으로 계속합니다:", err);
+      } finally {
+        updateCalculations();
+      }
+    }
+
+    // State Variables
+    let userCapital = 35000; // 3억 5천만원
+    let userIncome = 6500;  // 6,500만원
+    let houseCount = 0;
+    let selectedLocations = ["mapo", "gangdong", "seodaemun", "yeongdeungpo", "bundang", "gwangmyeong", "other"];
+    let selectedSize = "all";
+    let currentSort = "score";
+
+    // DOM Elements
+    const capitalRange = document.getElementById('capitalRange');
+    const capitalValText = document.getElementById('capitalValText');
+    const incomeRange = document.getElementById('incomeRange');
+    const incomeValText = document.getElementById('incomeValText');
+    const maxBudgetDisplay = document.getElementById('maxBudgetDisplay');
+    const budgetFormulaText = document.getElementById('budgetFormulaText');
+    const maxLoanDisplay = document.getElementById('maxLoanDisplay');
+    const monthlyPayText = document.getElementById('monthlyPayText');
+    const taxEstimateDisplay = document.getElementById('taxEstimateDisplay');
+    const matchCountDisplay = document.getElementById('matchCountDisplay');
+    const aptGrid = document.getElementById('aptGrid');
+    const resultsCount = document.getElementById('resultsCount');
+    const toastMsg = document.getElementById('toastMsg');
+    const toastText = document.getElementById('toastText');
+
+    // Modals
+    const detailModal = document.getElementById('detailModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    // Formatters
+    function formatMoney(amountInTenThousand) {
+      if (amountInTenThousand >= 10000) {
+        const euk = Math.floor(amountInTenThousand / 10000);
+        const remainder = amountInTenThousand % 10000;
+        if (remainder > 0) {
+          return `${euk}억 ${remainder.toLocaleString()}만원`;
+        }
+        return `${euk}억원`;
+      }
+      return `${amountInTenThousand.toLocaleString()}만원`;
+    }
+
+    // Calculation Logic
+    function updateCalculations() {
+      // DSR Cap simulation: Max annual payment = 40% of income
+      const maxAnnualPayment = userIncome * 0.40; // in 10,000 KRW
+      // 35 year loan at 3.8% interest: approx multiplier ~ 18.3
+      let maxLoan = Math.round(maxAnnualPayment * 18.3); 
+      if (maxLoan > 50000) maxLoan = 50000; // Cap at 5억 for standard mortgage simulation
+
+      const maxPurchasePower = userCapital + maxLoan;
+      const monthlyPayment = Math.round((maxLoan * 10000 * 0.046) / 12 / 10000); // approx monthly pay
+
+      // Estimated Acquisition tax & fee (~2.8% for standard)
+      const estTax = Math.round(maxPurchasePower * 0.028);
+
+      // Render Dashboard Card Values
+      maxBudgetDisplay.textContent = formatMoney(maxPurchasePower);
+      budgetFormulaText.textContent = `자본금 ${formatMoney(userCapital)} + 대출 ${formatMoney(maxLoan)}`;
+      maxLoanDisplay.textContent = formatMoney(maxLoan);
+      monthlyPayText.textContent = `월 원리금 약 ${monthlyPayment}만원 (35년 만기 기준)`;
+      taxEstimateDisplay.textContent = `약 ${formatMoney(estTax)}`;
+
+      renderApartments(maxPurchasePower);
+    }
+
+    // Render Apartment Cards
+    function renderApartments(maxBudget) {
+      let filtered = apartmentDB.filter(apt => {
+        if (apt.price > maxBudget) return false;
+        if (selectedSize !== "all" && apt.size !== parseInt(selectedSize)) return false;
+        if (selectedLocations.length > 0 && !selectedLocations.includes(apt.locCode)) return false;
+        return true;
+      });
+
+      // Sorting
+      if (currentSort === "score") {
+        filtered.sort((a, b) => b.score - a.score);
+      } else if (currentSort === "price") {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (currentSort === "gap") {
+        filtered.sort((a, b) => a.gap - b.gap);
+      }
+
+      matchCountDisplay.textContent = `${filtered.length}개 단지`;
+      resultsCount.textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        aptGrid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px solid #e2e8f0;">
+            <p style="font-size: 1.1rem; font-weight: 700; color: #475569; margin-bottom: 8px;">조건에 일치하는 아파트 단지가 없습니다.</p>
+            <p style="font-size: 0.85rem; color: #94a3b8;">자본금 슬라이더를 올리거나 필터 조건을 완화해보세요.</p>
+          </div>
+        `;
+        return;
+      }
+
+      aptGrid.innerHTML = filtered.map(apt => {
+        const canBuyWithCashOnly = userCapital >= apt.price;
+        const requiredLoan = apt.price - userCapital;
+        const statusBadge = canBuyWithCashOnly 
+          ? `<span class="match-status-badge">대출없이 매수 가능</span>`
+          : `<span class="match-status-badge">대출 ${formatMoney(requiredLoan)} 필요</span>`;
+
+        return `
+          <div class="apt-card" onclick="openDetailModal(${apt.id})">
+            <div class="apt-header-img">
+              <div class="apt-header-bg-art"></div>
+              <div class="apt-badge-top">
+                <span class="score-badge">🔥 현장지수 ${apt.score}점</span>
+                ${statusBadge}
+              </div>
+              <div class="apt-img-footer">
+                <div class="apt-name">${apt.name}</div>
+                <div class="apt-location">${apt.location} | ${apt.units.toLocaleString()}세대</div>
+              </div>
+            </div>
+
+            <div class="apt-body">
+              <div class="apt-price-row">
+                <span class="price-label">최근 실거래가</span>
+                <span class="price-value">${formatMoney(apt.price)}</span>
+              </div>
+
+              <div class="apt-metrics-grid">
+                <div class="metric-box">
+                  <span class="metric-title">전세가</span>
+                  <span class="metric-data">${formatMoney(apt.jeonse)}</span>
+                </div>
+                <div class="metric-box">
+                  <span class="metric-title">갭투자 필요액</span>
+                  <span class="metric-data" style="color:#2563eb;">${formatMoney(apt.gap)}</span>
+                </div>
+                <div class="metric-box">
+                  <span class="metric-title">평형</span>
+                  <span class="metric-data">${apt.size}㎡ (${Math.round(apt.size*0.4)}평형)</span>
+                </div>
+              </div>
+
+              <div class="apt-tags">
+                ${apt.tags.map(t => `<span class="tag-chip ${t.includes('급매') || t.includes('역세권') ? 'highlight' : ''}">${t}</span>`).join('')}
+              </div>
+            </div>
+
+            <div class="apt-card-footer">
+              <button class="btn-card-detail">상세 대출 & 시뮬레이션 보기</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal Action
+    function openDetailModal(id) {
+      const apt = apartmentDB.find(a => a.id === id);
+      if (!apt) return;
+
+      document.getElementById('modalAptName').textContent = apt.name;
+      document.getElementById('modalAptLoc').textContent = `${apt.location} | ${apt.units.toLocaleString()}세대 | ${apt.year}년 준공`;
+      document.getElementById('modalPriceVal').textContent = formatMoney(apt.price);
+      document.getElementById('modalUserCapitalVal').textContent = formatMoney(userCapital);
+
+      const reqLoan = Math.max(0, apt.price - userCapital);
+      document.getElementById('modalRequiredLoanVal').textContent = reqLoan > 0 ? formatMoney(reqLoan) : "0원 (자본금 충분)";
+
+      const monthlyPay = Math.round((reqLoan * 10000 * 0.046) / 12 / 10000);
+      document.getElementById('modalMonthlyPaymentVal').textContent = reqLoan > 0 ? `월 ${monthlyPay}만원 (35년, 3.8% 기준)` : "월 상환금 없음";
+
+      const tax = Math.round(apt.price * 0.024);
+      document.getElementById('modalTaxVal').textContent = `약 ${formatMoney(tax)}`;
+
+      detailModal.classList.add('active');
+    }
+
+    modalCloseBtn.addEventListener('click', () => {
+      detailModal.classList.remove('active');
+    });
+
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal) detailModal.classList.remove('active');
+    });
+
+    // Event Listeners
+    capitalRange.addEventListener('input', (e) => {
+      userCapital = parseInt(e.target.value);
+      capitalValText.textContent = formatMoney(userCapital);
+      updateCalculations();
+    });
+
+    incomeRange.addEventListener('input', (e) => {
+      userIncome = parseInt(e.target.value);
+      incomeValText.textContent = formatMoney(userIncome);
+      updateCalculations();
+    });
+
+    function addCapital(amount) {
+      userCapital += amount;
+      if (userCapital > 150000) userCapital = 150000;
+      capitalRange.value = userCapital;
+      capitalValText.textContent = formatMoney(userCapital);
+      updateCalculations();
+      showToast(`자본금이 ${formatMoney(userCapital)}(으)로 변경되었습니다.`);
+    }
+
+    // Segmented Controls
+    document.querySelectorAll('#houseCountCtrl button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#houseCountCtrl button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        houseCount = parseInt(btn.dataset.val);
+        updateCalculations();
+      });
+    });
+
+    document.querySelectorAll('#sizeCtrl button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sizeCtrl button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedSize = btn.dataset.size;
+        updateCalculations();
+      });
+    });
+
+    // Location Pills
+    document.querySelectorAll('.loc-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const loc = pill.dataset.loc;
+        if (pill.classList.contains('selected')) {
+          pill.classList.remove('selected');
+          selectedLocations = selectedLocations.filter(l => l !== loc);
+        } else {
+          pill.classList.add('selected');
+          selectedLocations.push(loc);
+        }
+        updateCalculations();
+      });
+    });
+
+    // Sorting buttons
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSort = btn.dataset.sort;
+        updateCalculations();
+      });
+    });
+
+    // Preset Loader
+    function loadPreset(type) {
+      document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (type === 'starter') {
+        userCapital = 35000;
+        userIncome = 6500;
+      } else if (type === 'upgrade') {
+        userCapital = 60000;
+        userIncome = 9000;
+      } else if (type === 'gap') {
+        userCapital = 25000;
+        userIncome = 5500;
+      }
+
+      capitalRange.value = userCapital;
+      capitalValText.textContent = formatMoney(userCapital);
+      incomeRange.value = userIncome;
+      incomeValText.textContent = formatMoney(userIncome);
+      updateCalculations();
+      showToast(`'${event.target.textContent}' 조건이 적용되었습니다.`);
+    }
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      userCapital = 35000;
+      userIncome = 6500;
+      selectedSize = 'all';
+      capitalRange.value = userCapital;
+      capitalValText.textContent = formatMoney(userCapital);
+      incomeRange.value = userIncome;
+      incomeValText.textContent = formatMoney(userIncome);
+      updateCalculations();
+      showToast('검색 조건이 초기화 되었습니다.');
+    });
+
+    // Search Trigger Button
+    document.getElementById('searchTriggerBtn').addEventListener('click', () => {
+      updateCalculations();
+      showToast('맞춤 매수 가능 아파트 단지가 갱신되었습니다.');
+    });
+
+    // Toast Function
+    function showToast(msg) {
+      toastText.textContent = msg;
+      toastMsg.classList.add('show');
+      setTimeout(() => {
+        toastMsg.classList.remove('show');
+      }, 2500);
+    }
+
+    // Share button
+    document.getElementById('sharePresetBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('현재 매수 탐색 조건 링크가 클립보드에 복사되었습니다.');
+    });
+
+    // Initialize
+    updateCalculations();
+    loadSupabaseApartmentData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase 데이터 연동 및 출력</title>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3ecf8e;
+      --primary-hover: #34b27b;
+      --error: #f43f5e;
+      --border: #334155;
+      --code-bg: #090d16;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    .output-section {
+      margin-top: 24px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .output-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(62, 207, 142, 0.15);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: "Fira Code", Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      max-height: 320px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .status-msg {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .status-msg.error {
+      display: block;
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .status-msg.info {
+      display: block;
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid var(--muted);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <svg class="logo" viewBox="0 0 106 106" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M58.7077 104.984C55.2346 108.976 48.6657 106.326 48.9619 101.037L52.548 36.9628H8.81768C2.55182 36.9628 -1.24647 29.8398 2.37887 24.7337L47.2923 1.01597C50.7654 -2.97561 57.3343 -0.325596 57.0381 4.96312L53.452 69.0372H97.1823C103.448 69.0372 107.246 76.1602 103.621 81.2663L58.7077 104.984Z" fill="#3ECF8E"/>
+      </svg>
+      <h1>Supabase 데이터 연동 & 출력</h1>
+    </div>
+
+    <form id="fetch-form" onsubmit="fetchData(event)">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="url">Supabase URL</label>
+          <input type="url" id="url" placeholder="https://xyzcompany.supabase.co" required>
+        </div>
+
+        <div class="form-group full">
+          <label for="key">Public Key</label>
+          <input type="text" id="key" placeholder="eyJhbGciOiJIUzI1Ni..." required>
+        </div>
+
+        <div class="form-group full">
+          <label for="table">조회할 테이블 이름</label>
+          <input type="text" id="table" placeholder="예: todos, users, posts" value="apartment_deals" required>
+        </div>
+      </div>
+
+      <button type="submit">데이터 불러오기 (select *)</button>
+    </form>
+
+    <div id="status" class="status-msg"></div>
+
+    <div class="output-section">
+      <div class="output-header">
+        <span class="output-title">조회 결과 데이터</span>
+        <span id="data-count" class="badge" style="display: none;">0 건</span>
+      </div>
+      <pre id="json-output">// URL과 Key, 테이블 이름을 입력 후 [데이터 불러오기] 버튼을 누르세요.</pre>
+    </div>
+  </div>
+
+  <script>
+    async function fetchData(e) {
+      e.preventDefault();
+
+      const url = document.getElementById('url').value.trim();
+      const key = document.getElementById('key').value.trim();
+      const tableName = document.getElementById('table').value.trim();
+
+      const status = document.getElementById('status');
+      const jsonOutput = document.getElementById('json-output');
+      const dataCount = document.getElementById('data-count');
+
+      status.className = 'status-msg';
+      status.style.display = 'none';
+      jsonOutput.textContent = '데이터를 불러오는 중입니다...';
+      dataCount.style.display = 'none';
+
+      try {
+        // 1. Supabase 클라이언트 생성
+        const supabase = window.supabase.createClient(url, key);
+
+        // 2. 테이블 데이터 전체 조회 (select *)
+        const { data, error, count } = await supabase
+          .from(tableName)
+          .select('*', { count: 'exact' });
+
+        if (error) throw error;
+
+        // 3. 데이터 출력 처리
+        if (data && data.length > 0) {
+          jsonOutput.textContent = JSON.stringify(data, null, 2);
+          dataCount.textContent = `${data.length} 건 조회됨`;
+          dataCount.style.display = 'inline-block';
+        } else {
+          jsonOutput.textContent = `[] // 테이블 '${tableName}'에 데이터가 없거나 접근 권한(RLS Policy)을 확인해 주세요.`;
+          dataCount.textContent = '0 건';
+          dataCount.style.display = 'inline-block';
+        }
+      } catch (err) {
+        const errorDetails = {
+          message: err.message || '알 수 없는 오류',
+          details: err.details || null,
+          hint: err.hint || null,
+          code: err.code || null,
+          status: err.status || null,
+          fullError: err
+        };
+        jsonOutput.textContent = `// ❌ [오류 발생 상세 정보]\n` + JSON.stringify(errorDetails, null, 2);
+        status.className = 'status-msg error';
+        status.innerHTML = `❌ <strong>에러 발생:</strong> ${err.message || '상세 오류는 아래 조회 결과 창을 참고하세요.'}`;
+      }
+    }
+  </script>
+
+</body>
+</html>
