@@ -455,9 +455,9 @@
   
   <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  // import { SUPABASE_URL, SUPABASE_ANON_KEY} from './config.js';
-  const SUPABASE_URL = "https://fxjtykeuznhnyctyqalc.supabase.co/";
-  const SUPABASE_ANON_KEY = "sb_publishable_cPFw8hOTys96SJkuG_k0ow_DOf4vxAd";
+  import { SUPABASE_URL, SUPABASE_ANON_KEY} from './config.js';
+  // const SUPABASE_URL = "https://fxjtykeuznhnyctyqalc.supabase.co/";
+  // const SUPABASE_ANON_KEY = "sb_publishable_cPFw8hOTys96SJkuG_k0ow_DOf4vxAd";
   
   const TABLE_NAME = "apartment_deals";
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
