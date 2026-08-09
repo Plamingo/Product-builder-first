@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find벤치</title>
+  <style>
+    @font-face {
+        font-family: 'GMarketSans';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+        font-weight: 500;
+        font-display: swap;
+    }
+    :root {
+      --bg: #f8fafc;
+      --panel-bg: rgba(30, 41, 59, 0.7);
+      --panel-border: rgba(203, 213, 225, 0.9);
+      --card-bg: #ffffff;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+      --table-th-bg: #f1f5f9;
+      --table-td-border: #e2e8f0;
+      --table-td-text: #334155;
+      --row-hover: rgba(255, 255, 255, 0.03);
+      --primary: #059669;
+      --primary-glow: rgba(62, 207, 142, 0.2);
+      --primary-green: #10b981;
+      --muted: #64748b;
+      --accent: #0284c7;
+      --accent-blue: #38bdf8;
+      --text: #0f172a;
+      --text-main: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family: 'GMarketSans';
+      min-height: 100vh;
+      background-image: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 50%);
+    }
+
+    /* Header */
+    header {
+      height: 64px;
+      background: rgba(11,15,25,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      background: var(--primary-green);
+      border-radius: 8px;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 20px;
+    }
+
+    .nav-menu a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active a, .nav-item a:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 14px;
+    }
+
+    .preset-pill{
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--primary-green);
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .preset-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--primary-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--primary-green);
+    }
+
+    .btn-share {
+      background: #131b2e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      padding: 6px 18px;
+      border-radius: 8px;
+      font-size: 0.825rem;
+      cursor: pointer;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-share:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    /* Control panel */
+    .controls-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      justify-content: space-between;
+    }
+
+    .filters-group {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .select-box {
+      padding: 10px 14px;
+      background: var(--bg);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      min-width: 160px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .select-box:focus {
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 42px;
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-refresh {
+      background: var(--primary);
+      color: var(--card-bg);
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+
+    /* Table container*/
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: none;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--table-th-bg);
+      padding: 14px 18px;
+      letter-spacing: 0.05em;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    
+    th:hover {
+      color: var(--text);
+    }
+
+    td {
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--table-td-border);
+      color: var(--table-td-text);
+    }
+
+    tr:hover td {
+      background-color: var(--row-hover);
+    }
+
+    .apt-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .price-tag {
+      font-weight: 700;      
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    .area-tag {
+      background: rgba(56,189,248,0.1);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .floor-tag {
+      background: rgba(148,163,184,0.15);
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+
+
+
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="nav-left">
+      <a href="#" class="brand-logo">
+        <div class="logo-badge"></div>
+      Find-Bench
+      </a>
+      <ul class="nav-menu">
+        <li class="nav-item active"><a href="#">국토부 실거래가</a></li>
+        <li class="nav-item"><a href="#">메뉴2</a></li>
+        <li class="nav-item"><a href="#">메뉴3</a></li>
+      </ul>
+    </div>
+    
+    <div class="nav-right">
+      <div class="preset-pill">
+        <span class="preset-dot"></span>
+        Connected
+      </div>
+      <button class="btn-share">공유</button>
+    </div>
+  </header>
+  
+  <main>
+    <!-- Shadow DOM -->
+    <div id="supabase-host"></div>
+
+    <!-- Filter & Button Controls -->
+    <div class="controls-panel">
+      <div class="filters-group">
+        <!-- 지역 선택 드롭다운 -->
+        <select id="region-select" class="select-box">
+          <option value="">🌐 전체 지역 (서울/경기)</option>
+          <optgroup label="서울특별시 (25개 자치구)">
+            <option value="11110">서울특별시 종로구</option>
+            <option value="11140">서울특별시 중구</option>
+            <option value="11170">서울특별시 용산구</option>
+            <option value="11200">서울특별시 성동구</option>
+            <option value="11215">서울특별시 광진구</option>
+            <option value="11230">서울특별시 동대문구</option>
+            <option value="11260">서울특별시 중랑구</option>
+            <option value="11290">서울특별시 성북구</option>
+            <option value="11305">서울특별시 강북구</option>
+            <option value="11320">서울특별시 도봉구</option>
+            <option value="11350">서울특별시 노원구</option>
+            <option value="11380">서울특별시 은평구</option>
+            <option value="11410">서울특별시 서대문구</option>
+            <option value="11440">서울특별시 마포구</option>
+            <option value="11470">서울특별시 양천구</option>
+            <option value="11500">서울특별시 강서구</option>
+            <option value="11530">서울특별시 구로구</option>
+            <option value="11545">서울특별시 금천구</option>
+            <option value="11560">서울특별시 영등포구</option>
+            <option value="11590">서울특별시 동작구</option>
+            <option value="11620">서울특별시 관악구</option>
+            <option value="11650">서울특별시 서초구</option>
+            <option value="11680">서울특별시 강남구</option>
+            <option value="11710">서울특별시 송파구</option>
+            <option value="11740">서울특별시 강동구</option>
+          </optgroup>
+          <optgroup label="경기도 (44개 시군구)">
+            <option value="41111">경기도 수원시 장안구</option>
+            <option value="41113">경기도 수원시 권선구</option>
+            <option value="41115">경기도 수원시 팔달구</option>
+            <option value="41117">경기도 수원시 영통구</option>
+            <option value="41131">경기도 성남시 수정구</option>
+            <option value="41133">경기도 성남시 중원구</option>
+            <option value="41135">경기도 성남시 분당구</option>
+            <option value="41150">경기도 의정부시</option>
+            <option value="41171">경기도 안양시 만안구</option>
+            <option value="41173">경기도 안양시 동안구</option>
+            <option value="41192">경기도 부천시 원미구</option>
+            <option value="41194">경기도 부천시 소사구</option>
+            <option value="41196">경기도 부천시 오정구</option>
+            <option value="41210">경기도 광명시</option>
+            <option value="41220">경기도 평택시</option>
+            <option value="41250">경기도 동두천시</option>
+            <option value="41271" selected>경기도 안산시 상록구</option>
+            <option value="41273">경기도 안산시 단원구</option>
+            <option value="41281">경기도 고양시 덕양구</option>
+            <option value="41285">경기도 고양시 일산동구</option>
+            <option value="41287">경기도 고양시 일산서구</option>
+            <option value="41290">경기도 과천시</option>
+            <option value="41310">경기도 구리시</option>
+            <option value="41360">경기도 남양주시</option>
+            <option value="41370">경기도 오산시</option>
+            <option value="41390">경기도 시흥시</option>
+            <option value="41410">경기도 군포시</option>
+            <option value="41430">경기도 의왕시</option>
+            <option value="41450">경기도 하남시</option>
+            <option value="41461">경기도 용인시 처인구</option>
+            <option value="41463">경기도 용인시 기흥구</option>
+            <option value="41465">경기도 용인시 수지구</option>
+            <option value="41480">경기도 파주시</option>
+            <option value="41500">경기도 이천시</option>
+            <option value="41550">경기도 안성시</option>
+            <option value="41570">경기도 김포시</option>
+            <option value="41590">경기도 화성시</option>
+            <option value="41610">경기도 광주시</option>
+            <option value="41630">경기도 양주시</option>
+            <option value="41650">경기도 포천시</option>
+            <option value="41670">경기도 여주시</option>
+            <option value="41800">경기도 연천군</option>
+            <option value="41820">경기도 가평군</option>
+            <option value="41830">경기도 양평군</option>
+          </optgroup>
+        </select>
+
+        <!-- 연도 선택 드롭다운 -->
+        <select id="year-select" class="select-box">
+          <option value="2026" selected>📅 2026년</option>
+          <option value="2025">📅 2025년</option>
+          <option value="2024">📅 2024년</option>
+          <option value="ALL">📅 전체</option>
+        </select>
+
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="아파트명 또는 동 검색...">
+        </div>
+
+        <div class="actions">
+          <button class="btn-refresh">검색</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Display Container -->
+    <div id="error-container" style="display: none;"></div>
+
+    <!-- Table View -->
+    <div class="table-container" id="table-view">
+      <div id="loading-state" class="loading-spinner">
+        <div class="spinner"></div>
+        <span>아파트 실거래 데이터를 불러오는 중...</span>
+      </div>
+
+      <table id="deals-table" style="display: none;">
+        <thead>
+          <tr>
+            <th onclick="sortTable('id')">ID <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('aptNm')">아파트명 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('umdNm')">지역 (동) <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('dealAmountVal')">거래금액 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('dealDateStr')">계약일자 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('excluUseAr')">전용면적 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('floor')">층수 <i class="fa-solid fa-sort"></i></th>
+            <th onclick="sortTable('buildYear')">건축년도 <i class="fa-solid fa-sort"></i></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </main>
+  
+  <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  import { SUPABASE_URL, SUPABASE_ANON_KEY} from './config.js';
+  const TABLE_NAME = "apartment_deals";
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // const hostElement = document.querySelector('#supabase-host');
+  // const shadowRoot = hostElement.attachShadow({mode: 'closed'});
+
+  document.getElementById('region-select').addEventListener('change',fetchApartmentDeals);
+  document.getElementById('year-select').addEventListener('change',fetchApartmentDeals);
+  document.getElementById('search-input').addEventListener('change',handleSearch)
+
+  // 페이지 로드시 데이터 조회화면 렌더링
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchApartmentDeals();
+  })
+
+  // -------------------------------------------------------------
+  // 데이터 불러오기 (선택된 지역코드 & 연도 조건 적용)
+  // -------------------------------------------------------------
+  let processedData = [];
+  async function fetchApartmentDeals() {
+    // const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('id', {ascending: true});
+    const loadingState = document.getElementById('loading-state');
+    const dealsTable = document.getElementById('deals-table');
+    const errorContainer = document.getElementById('error-container');
+
+    const selectedResion = document.getElementById('region-select').value;
+    const selectedYear = document.getElementById('year-select').value;
+
+    loadingState.style.display = 'flex';
+    errorContainer.style.display = 'none';
+    dealsTable.style.display = 'none';
+
+    let query = supabaseClient.from(TABLE_NAME).select('*');
+
+    if (selectedResion) {
+      query = query.eq('sggCd', selectedResion);
+    }
+
+    if (selectedYear && selectedYear !== 'ALL') {
+      query = query.eq('dealYear', parseInt(selectedYear,10));
+    }
+
+
+    const {data, error} = await query.order('id', {ascending: true})
+
+    if (error) {
+      console.error('데이터 조회 실패', error.message);
+      return;
+    }
+    // console.log("데이터", data);
+    
+    processedData = data.map(item => {
+      let amountNum = 0;
+      if (item.dealAmount) {
+        amountNum = parseInt(String(item.dealAmount).replace(/,/g,'').trim(), 10) || 0;
+      }
+
+      const year = item.dealYear || '';
+      const month = String(item.dealMonth || '').padStart(2, '0');
+      const day = String(item.dealDay || '').padStart(2, '0');
+      const dealDateStr = year ? `${year}-${month}-${day}` : '';
+
+      return {
+        ...item,
+        dealAmountVal: amountNum,
+        dealDateStr: dealDateStr
+      }
+    })
+
+    // 테이블 렌더링
+    renderTable(processedData);
+
+    loadingState.style.display = 'none';
+    dealsTable.style.display = 'table';
+  }
+
+  // 금액 포맷 (예: 185000 -> 18억 5,000만)
+  function formatKoreanPrice(amount) {
+    if (!amount) return '-';
+    const uk = Math.floor(amount/10000);
+    const man = amount%10000;
+
+    let res = '';
+    if (uk > 0) res += `${uk}억`;
+    if (man > 0) res += `${man.toLocaleString()}만`;
+    return res.trim() + '원';
+  }
+
+  // -------------------------------------------------------------
+  // 테이블 렌더링
+  // -------------------------------------------------------------
+  function renderTable(dataList) {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    if (dataList.length === 0){
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px;">선택한 조건의 데이터없음</td></tr>`;
+      console.log("데이터없음")
+      return;
+    }
+
+    dataList.forEach(item => {
+      const tr = document.createElement('tr');
+
+      const aptName = item.aptNm || '미지정';
+      const umd = item.umdNm ? item.umdNm.trim() :'';
+      const jibun = item.jibun ? item.jibun.trim() :'';
+      const location = `${umd} ${jibun}`.trim() || '-';
+      const formattedPrice = formatKoreanPrice(item.dealAmountVal) || item.dealAmount || '-';
+      const areaPyeong = item.excluUseAr ? `${item.excluUseAr}㎡ (${Math.round(item.excluUseAr / 3.3)}평)` : '-';
+      const floorStr = item.floor ? `${item.floor}층` : '-';
+      const buildYearStr = item.buildYear ? `${item.buildYear}년` : '-';
+
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td class="apt-name">${aptName}</td>
+        <td>${location}</td>
+        <td class="price-tag">${formattedPrice}</td>
+        <td>${item.dealDateStr || '-'}</td>
+        <td><span class="area-tag">${areaPyeong}</span></td>
+        <td><span class="floor-tag">${floorStr}</span></td>
+        <td>${buildYearStr}</td>
+      `
+
+      tbody.appendChild(tr);
+    })
+  }
+
+  // -------------------------------------------------------------
+  // 검색어 필터링 및 정렬 통합 처리
+  // -------------------------------------------------------------
+  function handleSearch() {
+    const keyword = document.getElementById('search-input').value.trim();
+
+    let filtered = processedData.filter(item => {
+      if (!keyword) return true;
+      const name = (item.aptNm || '');
+      const umd = (item.umdNm || '');
+      const jibun = (item.jibun || '');
+      return name.includes(keyword) || umd.includes(keyword) || jibun.includes(keyword);
+    });
+
+    renderTable(filtered);
+  }
+  </script>
+</body>
+</html>
