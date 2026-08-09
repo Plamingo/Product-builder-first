@@ -454,7 +454,7 @@
   </main>
   
   <script type="module">
-  import { env } from "cloudflare:pages";
+  import { env } from "cloudflare:workers";
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   // import { SUPABASE_URL, SUPABASE_ANON_KEY} from './config.js';
   const SUPABASE_URL = env.SUPABASE_URL
