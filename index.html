@@ -61,6 +61,10 @@
         <span class="preset-dot"></span>
         Connected
       </div>
+      <div class="glass-badge">
+        <span class="badge-dot"></span>
+        <span id="live-user-count">3,500명 실시간접속</span>
+      </div>
       <button class="btn-share">공유</button>
     </div>
   </header>
@@ -197,8 +201,11 @@
   </main>
   
   <script type="module">
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const configPath = isLocal ? '.config.js' : '/config'
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  import { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME} from './config';
+  
+  const { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME} = await import (configPath);
   
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
