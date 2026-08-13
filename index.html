@@ -197,14 +197,8 @@
   </main>
   
   <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  import { SUPABASE_URL, SUPABASE_ANON_KEY} from './config.js';
-  
   const TABLE_NAME = "apartment_deals";
-  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // const hostElement = document.querySelector('#supabase-host');
-  // const shadowRoot = hostElement.attachShadow({mode: 'closed'});
   const sidebarDrawer = document.getElementById('sidebar-drawer');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
   const sidebarTrigger = document.getElementById('sidebar-trigger-zone');
@@ -229,50 +223,61 @@
   if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
   if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
 
-  document.getElementById('region-select').addEventListener('change',fetchApartmentDeals);
-  document.getElementById('year-select').addEventListener('change',fetchApartmentDeals);
-  document.getElementById('search-input').addEventListener('change',handleSearch)
+  document.getElementById('region-select').addEventListener('change', fetchApartmentDeals);
+  document.getElementById('year-select').addEventListener('change', fetchApartmentDeals);
+  document.getElementById('search-input').addEventListener('change', handleSearch);
 
   // 페이지 로드시 데이터 조회화면 렌더링
   document.addEventListener('DOMContentLoaded', () => {
     fetchApartmentDeals();
-  })
+  });
 
   // -------------------------------------------------------------
-  // 데이터 불러오기 (선택된 지역코드 & 연도 조건 적용)
+  // 데이터 불러오기 (Cloudflare Serverless Proxy API /api/deals 활용)
   // -------------------------------------------------------------
   let processedData = [];
   async function fetchApartmentDeals() {
-    // const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('id', {ascending: true});
     const loadingState = document.getElementById('loading-state');
     const dealsTable = document.getElementById('deals-table');
     const errorContainer = document.getElementById('error-container');
 
-    const selectedResion = document.getElementById('region-select').value;
+    const selectedRegion = document.getElementById('region-select').value;
     const selectedYear = document.getElementById('year-select').value;
 
     loadingState.style.display = 'flex';
     errorContainer.style.display = 'none';
     dealsTable.style.display = 'none';
 
-    let query = supabaseClient.from(TABLE_NAME).select('*');
+    try {
+      const params = new URLSearchParams();
+      if (selectedRegion) params.append('sggCd', selectedRegion);
+      if (selectedYear && selectedYear !== 'ALL') params.append('dealYear', selectedYear);
 
-    if (selectedResion) {
-      query = query.eq('sggCd', selectedResion);
-    }
+      // Cloudflare Functions Proxy API 호출 (개발자 도구에 URL/Key 100% 숨김)
+      let apiUrl = `/api/deals?${params.toString()}`;
+      let response = await fetch(apiUrl);
 
-    if (selectedYear && selectedYear !== 'ALL') {
-      query = query.eq('dealYear', parseInt(selectedYear,10));
-    }
+      // 로컬 단순 테스트 환경(Live Server)으로 인한 /api/deals 404 발생 시 폴백
+      if (!response.ok && response.status === 404) {
+        try {
+          const { SUPABASE_URL, SUPABASE_ANON_KEY } = await import('./config.js');
+          let fallbackUrl = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${TABLE_NAME}?select=*&order=id.asc`;
+          if (selectedRegion) fallbackUrl += `&sggCd=eq.${selectedRegion}`;
+          if (selectedYear && selectedYear !== 'ALL') fallbackUrl += `&dealYear=eq.${selectedYear}`;
 
+          response = await fetch(fallbackUrl, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          });
+        } catch (e) {
+          console.warn('Local config fallback warning:', e);
+        }
+      }
 
-    const {data, error} = await query.order('id', {ascending: true})
+      if (!response.ok) {
+        throw new Error(`데이터를 불러오는데 실패했습니다 (상태 코드: ${response.status})`);
+      }
 
-    if (error) {
-      console.error('데이터 조회 실패', error.message);
-      return;
-    }
-    // console.log("데이터", data);
+      const data = await response.json();
     
     processedData = data.map(item => {
       let amountNum = 0;
@@ -297,6 +302,12 @@
 
     loadingState.style.display = 'none';
     dealsTable.style.display = 'table';
+    } catch (error) {
+      console.error('데이터 조회 실패', error);
+      loadingState.style.display = 'none';
+      errorContainer.style.display = 'block';
+      errorContainer.textContent = `데이터를 불러올 수 없습니다: ${error.message}`;
+    }
   }
 
   // 금액 포맷 (예: 185000 -> 18억 5,000만)
