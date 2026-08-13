@@ -63,7 +63,7 @@
       </div>
       <div class="glass-badge">
         <span class="badge-dot"></span>
-        <span id="live-user-count">3,500명 실시간접속</span>
+        <span id="live-user-count">3,500명 실시간접속중</span>
       </div>
       <button class="btn-share">공유</button>
     </div>
@@ -239,7 +239,15 @@
   // 페이지 로드시 데이터 조회화면 렌더링
   document.addEventListener('DOMContentLoaded', () => {
     fetchApartmentDeals();
-  })
+
+    setInterval(() => {
+      const el = document.getElementById('live-user-count');
+      if (el) {
+        const count = 3840 + Math.floor(Math.random() * 15);
+        el.textContent = `${count.toLocaleString()}명 실시간 접속중`
+      }
+    }, 4000);
+  });
 
   // -------------------------------------------------------------
   // 데이터 불러오기 (선택된 지역코드 & 연도 조건 적용)
