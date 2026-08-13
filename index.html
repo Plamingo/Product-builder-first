@@ -4,310 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find벤치</title>
-  <style>
-    @font-face {
-        font-family: 'GMarketSans';
-        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-        font-weight: 500;
-        font-display: swap;
-    }
-    :root {
-      --bg: #f8fafc;
-      --panel-bg: rgba(30, 41, 59, 0.7);
-      --panel-border: rgba(203, 213, 225, 0.9);
-      --card-bg: #ffffff;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
-      --table-th-bg: #f1f5f9;
-      --table-td-border: #e2e8f0;
-      --table-td-text: #334155;
-      --row-hover: rgba(255, 255, 255, 0.03);
-      --primary: #059669;
-      --primary-glow: rgba(62, 207, 142, 0.2);
-      --primary-green: #10b981;
-      --muted: #64748b;
-      --accent: #0284c7;
-      --accent-blue: #38bdf8;
-      --text: #0f172a;
-      --text-main: #f8fafc;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin:0;
-      padding:0;
-    }
-
-    body{
-      font-family: 'GMarketSans';
-      min-height: 100vh;
-      background-image: 
-    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 50%);
-    }
-
-    /* Header */
-    header {
-      height: 64px;
-      background: rgba(11,15,25,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-      
-    }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 800;
-      font-size: 1.15rem;
-    }
-
-    .logo-badge {
-      width: 28px;
-      height: 28px;
-      background: var(--primary-green);
-      border-radius: 8px;
-    }
-
-    .nav-menu {
-      display: flex;
-      align-items: center;
-      list-style: none;
-      gap: 20px;
-    }
-
-    .nav-menu a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: all 0.2s;
-      line-height: 1;
-    }
-
-    .nav-item.active a, .nav-item a:hover {
-      color: var(--text-main);
-      background: rgba(255,255,255,0.06);
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .preset-pill{
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.3);
-      color: var(--primary-green);
-      font-size: 0.8rem;
-      padding: 5px 12px;
-      border-radius: 20px;
-    }
-
-    .preset-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--primary-green);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--primary-green);
-    }
-
-    .btn-share {
-      background: #131b2e;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #f8fafc;
-      padding: 6px 18px;
-      border-radius: 8px;
-      font-size: 0.825rem;
-      line-height: 1.3;
-      cursor: pointer;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-
-    .btn-share:hover {
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
-    }
-
-    main {
-      max-width: 1280px;
-      margin: 28px auto 0;
-      padding: 0 24px;
-    }
-
-    /* Control panel */
-    .controls-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 24px;
-      justify-content: space-between;
-    }
-
-    .filters-group {
-      display: flex;
-      gap: 12px;
-      flex: 1;
-    }
-
-    .select-box {
-      padding: 10px 14px;
-      background: var(--bg);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-      cursor: pointer;
-      min-width: 160px;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .select-box:focus {
-      border-color: var(--primary-green);
-      box-shadow: 0 0 0 3px var(--primary-glow);
-    }
-
-    .search-box {
-      position: relative;
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 10px 14px 10px 42px;
-      background: var(--bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .search-box input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-glow);
-    }
-
-    .actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .btn-refresh {
-      background: var(--primary);
-      color: var(--card-bg);
-      border: none;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      gap: 8px;
-      transition: background 0.15s ease;
-    }
-
-    /* Table container*/
-    .table-container {
-      background: var(--card-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: var(--card-shadow);
-      transition: none;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th {
-      background: var(--table-th-bg);
-      padding: 14px 18px;
-      letter-spacing: 0.05em;
-      font-size: 0.8rem;
-      color: var(--muted);
-      border-bottom: 1px solid var(--panel-border);
-    }
-    
-    th:hover {
-      color: var(--text);
-    }
-
-    td {
-      padding: 14px 18px;
-      font-size: 0.9rem;
-      border-bottom: 1px solid var(--table-td-border);
-      color: var(--table-td-text);
-    }
-
-    tr:hover td {
-      background-color: var(--row-hover);
-    }
-
-    .apt-name {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .price-tag {
-      font-weight: 700;      
-      color: var(--primary);
-      font-size: 1rem;
-    }
-
-    .area-tag {
-      background: rgba(56,189,248,0.1);
-      color: var(--accent);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .floor-tag {
-      background: rgba(148,163,184,0.15);
-      color: var(--muted);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-    }
-
-
-
-
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+  <!-- Left Edge Hover Proximity Trigger Zone -->
+  <div id="sidebar-trigger-zone" class="sidebar-trigger-zone" title="마우스를 좌측 끝으로 이동하면 사이드바가 열립니다">
+    <div class="sidebar-trigger-pill"></div>
+  </div>
+
+  <!-- Sidebar Overlay Backdrop -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+  <!-- Left Off-Canvas Sidebar Drawer -->
+  <aside id="sidebar-drawer" class="sidebar-drawer">
+    <div class="sidebar-header">
+      <a href="#" class="brand-logo">
+        <div class="logo-badge"><i class="fa-solid fa-building-user"></i></div>
+        Find-Bench
+      </a>
+      <button id="sidebar-close-btn" class="sidebar-close-btn" title="사이드바 닫기">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="sidebar-body">
+      <div>
+        <div class="sidebar-group-title">
+          <ul class="sidebar-nav-list">
+            <li class="sidebar-nav-item"><a href="#"><i class="fa-solid fa-house sidebar-nav-icon"></i>대시보드 홈</a></li>
+            <li class="sidebar-nav-item"><a href="#"><i class="fa-solid fa-chart-line sidebar-nav-icon"></i>국토부 실거래가</a></li>
+            <li class="sidebar-nav-item"><a href="#"><i class="fa-solid fa-map-location-dot sidebar-nav-icon"></i>지역별 시세 지도</a></li>
+            <li class="sidebar-nav-item"><a href="#"><i class="fa-solid fa-city sidebar-nav-icon"></i>인기 아파트</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+
   <!-- Top Navigation Header -->
   <header>
     <div class="nav-left">
       <a href="#" class="brand-logo">
-        <div class="logo-badge"></div>
+        <div class="logo-badge"><i class="fa-solid fa-building-user"></i></div>
       Find-Bench
       </a>
       <ul class="nav-menu">
@@ -466,6 +205,29 @@
 
   // const hostElement = document.querySelector('#supabase-host');
   // const shadowRoot = hostElement.attachShadow({mode: 'closed'});
+  const sidebarDrawer = document.getElementById('sidebar-drawer');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const sidebarTrigger = document.getElementById('sidebar-trigger-zone');
+  const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+  function openSidebar() {
+    if (sidebarDrawer) sidebarDrawer.classList.add('is-active');
+    if (sidebarOverlay) sidebarOverlay.classList.add('is-active');
+  }
+
+  function closeSidebar() {
+    if (sidebarDrawer) sidebarDrawer.classList.remove('is-active');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('is-active');
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    if (e.clientX <= 25) {
+      openSidebar();
+    }
+  });
+
+  if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+  if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
 
   document.getElementById('region-select').addEventListener('change',fetchApartmentDeals);
   document.getElementById('year-select').addEventListener('change',fetchApartmentDeals);
