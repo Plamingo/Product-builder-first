@@ -2,12 +2,11 @@
 export async function onRequest(context) {
   const SUPABASE_URL = context.env.SUPABASE_URL || "";
   const SUPABASE_ANON_KEY = context.env.SUPABASE_ANON_KEY || "";
-
-  // 디버깅용 서버 로그 (Cloudflare 대시보드 Real-time Logs에 출력됨)
-  console.log("SUPABASE_URL:", SUPABASE_URL);
+  const TABLE_NAME = context.env.TABLE_NAME || "";
 
   const body = `export const SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
-export const SUPABASE_ANON_KEY = ${JSON.stringify(SUPABASE_ANON_KEY)};`;
+export const SUPABASE_ANON_KEY = ${JSON.stringify(SUPABASE_ANON_KEY)};
+export const TABLE_NAME = ${JSON.stringify(TABLE_NAME)}`;
 
   return new Response(body, {
     headers: {
