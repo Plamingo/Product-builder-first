@@ -6,7 +6,7 @@ export async function onRequest(context) {
 
   const body = `export const SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
 export const SUPABASE_ANON_KEY = ${JSON.stringify(SUPABASE_ANON_KEY)};
-export const TABLE_NAME = ${JSON.stringify(TABLE_NAME)}`;
+export const TABLE_NAME = ${JSON.stringify(TABLE_NAME)};`;
 
   return new Response(body, {
     headers: {
