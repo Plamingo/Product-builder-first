@@ -201,11 +201,8 @@
   </main>
   
   <script type="module">
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const configPath = isLocal ? './config.js' : '/config'
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  
-  const { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME } = await import (configPath);
+  import { SUPABASE_URL, SUPABASE_ANON_KEY, TABLE_NAME} from './config';
   
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
