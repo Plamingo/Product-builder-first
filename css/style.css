@@ -211,6 +211,12 @@ header {
   height: 28px;
   background: var(--primary-green);
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b0e1a;
+  font-size: 1rem;
+  box-shadow: 0 0 20px rgba(94,231,223,0.4);
 }
 
 .nav-menu {
