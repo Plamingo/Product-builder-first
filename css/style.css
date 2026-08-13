@@ -170,7 +170,7 @@ body{
   padding: 10px 14px;
   border-radius: 14px;
   text-decoration: none;
-  transition: all var 120ms;
+  transition: all 120ms;
   color: #fff;
 
 }
