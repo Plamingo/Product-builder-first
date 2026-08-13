@@ -1,5 +1,5 @@
 # Local environment configuration file (Git 제외)
-config.js
+/config.js
 
 # System files
 .DS_Store
