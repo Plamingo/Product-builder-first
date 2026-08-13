@@ -237,17 +237,20 @@
   document.getElementById('search-input').addEventListener('change',handleSearch)
 
   // 페이지 로드시 데이터 조회화면 렌더링
-  document.addEventListener('DOMContentLoaded', () => {
-    fetchApartmentDeals();
+  // document.addEventListener('DOMContentLoaded', () => {
+  fetchApartmentDeals();
+  updateLiveUserCount();
+  setInterval(updateLiveUserCount, 4000);
+  // });
 
-    setInterval(() => {
-      const el = document.getElementById('live-user-count');
-      if (el) {
-        const count = 3840 + Math.floor(Math.random() * 15);
-        el.textContent = `${count.toLocaleString()}명 실시간 접속중`
-      }
-    }, 4000);
-  });
+  async function updateLiveUserCount() {
+    const el = document.getElementById('live-user-count');
+    if (el) {
+      const count = 3840 + Math.floor(Math.random() * 15);
+      el.textContent = `${count.toLocaleString()}명 실시간 접속중`
+    }
+  }
+  
 
   // -------------------------------------------------------------
   // 데이터 불러오기 (선택된 지역코드 & 연도 조건 적용)
