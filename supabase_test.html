@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase 설정 예시</title>
+  <!-- Supabase JS SDK 로드 (CDN 방식) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Supabase 연동 테스트</h1>
+  <p id="status">설정을 불러오는 중...</p>
+
+  <script>
+    async function initApp() {
+      try {
+        // 1. Cloudflare Functions /config 엔드포인트 호출
+        const response = await fetch('/config');
+        if (!response.ok) {
+          throw new Error('서버에서 설정 정보를 불러오지 못했습니다.');
+        }
+        
+        const config = await response.json();
+        console.log(config)
+        const { SUPABASE_URL, SUPABASE_ANON_KEY } = config;
+        console.log(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+          throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+        }
+
+        // 2. Supabase 클라이언트 초기화
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 전역(window) 객체나 필요한 곳에 할당하여 사용
+        window.supabaseClient = supabase;
+
+        document.getElementById('status').innerText = 'Supabase 연결 준비 완료!';
+        console.log('Supabase 초기화 성공:', supabase);
+
+        // 예시: 데이터 조회 테스트
+        // const { data, error } = await supabase.from('테이블명').select('*');
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status').innerText = `오류 발생: ${err.message}`;
+      }
+    }
+
+    // 페이지 로드 시 초기화 함수 실행
+    initApp();
+  </script>
+</body>
+</html>
