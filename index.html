@@ -203,6 +203,7 @@
   <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   // import { SUPABASE_URL, SUPABASE_ANON_KEY, } from './config';
+  const response = await fetch('/config');
   const config = await response.json();
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = config;
   const TABLE_NAME = "apartment_deals";
