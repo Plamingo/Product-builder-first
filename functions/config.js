@@ -2,12 +2,13 @@
 
 export async function onRequest(context) {
   // Cloudflare 대시보드에서 설정한 환경변수 객체 (context.env)
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = context.env;
+  const { SUPABASE_URL, SUPABASE_ANON_KEY, MAP_API } = context.env;
 
   // 클라이언트에 전달할 환경변수 데이터 객체 구성
   const configData = {
     SUPABASE_URL: SUPABASE_URL || "",
     SUPABASE_ANON_KEY: SUPABASE_ANON_KEY || "",
+    MAP_API: MAP_API || "",
   };
 
   // JSON 형식으로 응답 반환
