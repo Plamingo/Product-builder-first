@@ -22,6 +22,7 @@
         const config = await response.json();
         console.log(config)
         const { SUPABASE_URL, SUPABASE_ANON_KEY } = config;
+        console.log(SUPABASE_URL, SUPABASE_ANON_KEY)
 
         if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
           throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
